@@ -1,0 +1,34 @@
+# ContactInfo
+
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**contactPerson** | **string** |  | [optional] [default to undefined]
+**contactNumber** | **string** |  | [optional] [default to undefined]
+**contactEmail** | **string** |  | [optional] [default to undefined]
+**address** | **string** |  | [optional] [default to undefined]
+**city** | **string** |  | [optional] [default to undefined]
+**state** | **string** |  | [optional] [default to undefined]
+**postalCode** | **string** |  | [optional] [default to undefined]
+**country** | **string** |  | [optional] [default to undefined]
+
+## Example
+
+```typescript
+import { ContactInfo } from './api';
+
+const instance: ContactInfo = {
+    contactPerson,
+    contactNumber,
+    contactEmail,
+    address,
+    city,
+    state,
+    postalCode,
+    country,
+};
+```
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
