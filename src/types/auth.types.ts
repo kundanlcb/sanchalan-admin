@@ -7,11 +7,8 @@ export interface PlatformUser {
 }
 
 export interface AuthResponse {
-    success: boolean;
-    token: string;
-    refreshToken: string;
-    user: PlatformUser;
-    expiresIn?: number;
+    accessToken: string;
+    tokenType: string;
 }
 
 export interface AuthContextType {

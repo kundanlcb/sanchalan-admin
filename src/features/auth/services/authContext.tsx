@@ -27,15 +27,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const response = await authService.login(email, password);
-            // Assuming response structure matches AuthResponse
-            const userData = response.user;
-            const token = response.token;
+            const authResponse = await authService.login(email, password);
+            const token = authResponse.accessToken;
 
+            // Save token temporarily to allow getProfile call (it's used by apiClient interceptor)
             sessionStorage.setItem('platformAuthToken', token);
+
+            // Fetch profile data
+            const userData = await authService.getProfile();
+
             sessionStorage.setItem('platformUser', JSON.stringify(userData));
             setUser(userData);
         } catch (error) {
+            sessionStorage.removeItem('platformAuthToken');
             throw error;
         } finally {
             setIsLoading(false);
