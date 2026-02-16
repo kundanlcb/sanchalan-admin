@@ -70,3 +70,12 @@ export const bootstrapAdmin = async (schoolId: string, data: import('../types/sc
         throw error;
     }
 };
+
+export const getOnboardingStatus = async (id: string): Promise<import('../types/school.types').OnboardingStatus> => {
+    try {
+        const response = await apiClient.get(`/api/platform/v1/schools/${id}/onboarding-status`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};

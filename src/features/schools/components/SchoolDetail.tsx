@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getSchoolById } from '../services/schoolService';
+import { getSchoolById, getOnboardingStatus } from '../services/schoolService';
 import { Button } from '../../../components/common/Button';
-import { ArrowLeft, School as SchoolIcon, MapPin, Phone, Mail, Edit } from 'lucide-react';
+import { ArrowLeft, School as SchoolIcon, MapPin, Phone, Mail, Edit, CheckCircle2, Circle } from 'lucide-react';
 import { InviteAdminModal } from './onboarding/InviteAdminModal';
 import { SchoolSubscriptionInfo } from '../../subscriptions/components/SchoolSubscriptionInfo';
 import { OperationConfig } from './operations/OperationConfig';
@@ -12,11 +12,19 @@ export const SchoolDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
-    const { data: school, isLoading, isError, refetch } = useQuery({
+    const { data: school, isLoading: isSchoolLoading, isError, refetch: refetchSchool } = useQuery({
         queryKey: ['school', id],
         queryFn: () => getSchoolById(id!),
         enabled: !!id,
     });
+
+    const { data: onboardingStatus, isLoading: isOnboardingLoading, refetch: refetchOnboardingStatus } = useQuery({
+        queryKey: ['school-onboarding', id],
+        queryFn: () => getOnboardingStatus(id!),
+        enabled: !!id,
+    });
+
+    const isLoading = isSchoolLoading || isOnboardingLoading;
 
     if (isLoading) {
         return <div className="text-center py-10">Loading school details...</div>;
@@ -33,6 +41,37 @@ export const SchoolDetail: React.FC = () => {
         );
     }
 
+    const checklistItems = [
+        {
+            id: 'profile',
+            label: 'School Profile',
+            isComplete: onboardingStatus?.profileComplete,
+            actionLabel: 'Complete Profile',
+            actionPath: `/schools/${id}/edit`
+        },
+        {
+            id: 'academic',
+            label: 'Academic Year',
+            isComplete: onboardingStatus?.academicYearCreated,
+            actionLabel: 'Setup Academics',
+            actionPath: `/schools/${id}/academics` // Assuming this route exists or is common
+        },
+        {
+            id: 'admin',
+            label: 'Admin User',
+            isComplete: onboardingStatus?.adminUserInvited,
+            actionLabel: 'Invite Admin',
+            onClick: () => setIsInviteModalOpen(true)
+        },
+        {
+            id: 'subscription',
+            label: 'Active Subscription',
+            isComplete: onboardingStatus?.subscriptionActive,
+            actionLabel: 'Manage Plan',
+            actionPath: `/schools/${id}/finance`
+        }
+    ];
+
     return (
         <div className="space-y-6">
             <InviteAdminModal
@@ -40,8 +79,8 @@ export const SchoolDetail: React.FC = () => {
                 isOpen={isInviteModalOpen}
                 onClose={() => setIsInviteModalOpen(false)}
                 onSuccess={() => {
-                    // Refetch or show toast
-                    refetch();
+                    refetchSchool();
+                    refetchOnboardingStatus();
                 }}
             />
 
@@ -100,20 +139,53 @@ export const SchoolDetail: React.FC = () => {
                     </div>
 
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Readiness Checklist</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center justify-between">
+                            Readiness Checklist
+                            {isOnboardingLoading && <span className="text-xs font-normal text-gray-400">Updating...</span>}
+                        </h3>
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                <span className="text-sm text-gray-700">School Profile</span>
-                                <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Completed</span>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                <span className="text-sm text-gray-700">Academic Year</span>
-                                <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Pending</span>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                <span className="text-sm text-gray-700">Admin User</span>
-                                <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Pending</span>
-                            </div>
+                            {checklistItems.map((item) => (
+                                <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-100">
+                                    <div className="flex items-center gap-3">
+                                        {item.isComplete ? (
+                                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                        ) : (
+                                            <Circle className="w-5 h-5 text-gray-300" />
+                                        )}
+                                        <span className={`text-sm font-medium ${item.isComplete ? 'text-gray-900' : 'text-gray-500'}`}>
+                                            {item.label}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {item.isComplete ? (
+                                            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+                                                Completed
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
+                                                    Pending
+                                                </span>
+                                                {item.actionPath ? (
+                                                    <Link to={item.actionPath}>
+                                                        <Button variant="ghost" className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                                            {item.actionLabel}
+                                                        </Button>
+                                                    </Link>
+                                                ) : (
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                        onClick={item.onClick}
+                                                    >
+                                                        {item.actionLabel}
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 

@@ -16,3 +16,11 @@ export interface SchoolListResponse {
     size: number;
     number: number;
 }
+
+export interface OnboardingStatus {
+    profileComplete: boolean;
+    academicYearCreated: boolean;
+    adminUserInvited: boolean;
+    subscriptionActive: boolean;
+    allComplete: boolean;
+}
