@@ -31,18 +31,18 @@ export const PlatformUserList: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-xl font-semibold text-gray-900">Platform Users</h2>
                     <p className="text-sm text-gray-500 mt-1">Manage administrators and staff access to the platform.</p>
                 </div>
-                <Button onClick={() => setIsAddModalOpen(true)}>
+                <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
                     <UserPlus className="w-4 h-4 mr-2" />
                     Add User
                 </Button>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>

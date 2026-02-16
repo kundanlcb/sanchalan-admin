@@ -22,13 +22,13 @@ export const SchoolList: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Schools</h1>
                     <p className="text-gray-500">Manage all registered schools</p>
                 </div>
-                <Link to="/schools/new">
-                    <Button>
+                <Link to="/schools/new" className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto">
                         <Plus className="w-4 h-4 mr-2" />
                         Add School
                     </Button>
@@ -36,8 +36,8 @@ export const SchoolList: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-200 flex gap-4">
-                    <div className="relative flex-1 max-w-sm">
+                <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1 max-w-full sm:max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"

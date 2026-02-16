@@ -23,12 +23,12 @@ export const PlanList: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Subscription Plans</h1>
                     <p className="text-gray-500">Define and manage plans available for schools</p>
                 </div>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Button onClick={() => setIsCreateModalOpen(true)} className="w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Plan
                 </Button>
