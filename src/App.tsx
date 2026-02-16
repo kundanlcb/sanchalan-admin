@@ -18,6 +18,7 @@ import { PlanList } from './features/subscriptions/components/PlanList';
 import { Finance } from './pages/Finance';
 
 import { SupportDashboard } from './features/support/components/SupportDashboard';
+import { Settings } from './pages/Settings';
 
 function App() {
   return (
@@ -39,7 +40,7 @@ function App() {
               <Route path="/finance" element={<Layout><Finance /></Layout>} />
               <Route path="/subscriptions" element={<Layout><PlanList /></Layout>} />
               <Route path="/support" element={<Layout><SupportDashboard /></Layout>} />
-              <Route path="/settings" element={<Layout><div>Settings (Coming Soon)</div></Layout>} />
+              <Route path="/settings" element={<Layout><Settings /></Layout>} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,27 +1,27 @@
 export interface AcademicYear {
-    id: number;
+    id: string; // UUID
     name: string;
     startDate: string;
     endDate: string;
-    active: boolean;
+    active: boolean; // mapped from isCurrent
     schoolId: string;
 }
 
 export interface Section {
-    id: number;
+    id: string; // UUID
     name: string;
     schoolClassId?: number;
 }
 
 export interface SchoolClass {
-    id: number;
+    id: number; // Long
     name: string; // e.g., "Class 1", "Grade 10"
     schoolId: string;
     sections?: Section[];
 }
 
 export interface Subject {
-    id: number;
+    id: number; // Long
     name: string;
     code: string;
     schoolId: string;

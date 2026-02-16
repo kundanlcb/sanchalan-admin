@@ -2,6 +2,8 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getOperationConfig, updateOperationConfig } from '../../services/operationService';
 import { Settings } from 'lucide-react';
+import { Switch } from '../../../../components/common/Switch';
+import type { SchoolOperationConfig } from '../../../../api/models/school-operation-config';
 
 interface OperationConfigProps {
     schoolId: string;
@@ -16,8 +18,29 @@ export const OperationConfig: React.FC<OperationConfigProps> = ({ schoolId }) =>
     });
 
     const mutation = useMutation({
-        mutationFn: (newConfig: any) => updateOperationConfig(schoolId, newConfig),
-        onSuccess: () => {
+        mutationFn: (newConfig: SchoolOperationConfig) => updateOperationConfig(schoolId, newConfig),
+        // Optimistic Update Implementation
+        onMutate: async (newConfig) => {
+            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ['operation-config', schoolId] });
+
+            // Snapshot the previous value
+            const previousConfig = queryClient.getQueryData(['operation-config', schoolId]);
+
+            // Optimistically update to the new value
+            queryClient.setQueryData(['operation-config', schoolId], newConfig);
+
+            // Return a context object with the snapshotted value
+            return { previousConfig };
+        },
+        // If the mutation fails, use the context returned from onMutate to roll back
+        onError: (_err, _newConfig, context) => {
+            if (context?.previousConfig) {
+                queryClient.setQueryData(['operation-config', schoolId], context.previousConfig);
+            }
+        },
+        // Always refetch after error or success to guarantee we are in sync with the server
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['operation-config', schoolId] });
         },
     });
@@ -34,6 +57,7 @@ export const OperationConfig: React.FC<OperationConfigProps> = ({ schoolId }) =>
     ];
 
     const handleToggle = (key: string, currentVal: boolean) => {
+        if (!config) return;
         const newConfig = { ...config, [key]: !currentVal };
         mutation.mutate(newConfig);
     };
@@ -47,33 +71,23 @@ export const OperationConfig: React.FC<OperationConfigProps> = ({ schoolId }) =>
 
             <div className="space-y-6">
                 {toggles.map((toggle) => {
-                    const isEnabled = config?.[toggle.key as keyof typeof config] as boolean;
+                    const isEnabled = !!config?.[toggle.key as keyof SchoolOperationConfig];
                     return (
-                        <div key={toggle.key} className="flex items-center justify-between">
-                            <div className="flex-1 pr-4">
-                                <h4 className="text-sm font-semibold text-gray-900">{toggle.label}</h4>
-                                <p className="text-xs text-gray-500 mt-0.5">{toggle.description}</p>
-                            </div>
-                            <button
-                                onClick={() => handleToggle(toggle.key, isEnabled)}
-                                disabled={mutation.isPending}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                                    ${isEnabled ? 'bg-blue-600' : 'bg-gray-200'}`}
-                            >
-                                <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out
-                                        ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-                                />
-                            </button>
-                        </div>
+                        <Switch
+                            key={toggle.key}
+                            label={toggle.label}
+                            description={toggle.description}
+                            checked={isEnabled}
+                            onChange={() => handleToggle(toggle.key, isEnabled)}
+                        />
                     );
                 })}
             </div>
 
             {mutation.isPending && (
-                <div className="mt-4 text-xs text-blue-600 flex items-center gap-2">
+                <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-blue-600 flex items-center gap-2">
                     <div className="animate-spin h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    Saving changes...
+                    Syncing with server...
                 </div>
             )}
         </div>
