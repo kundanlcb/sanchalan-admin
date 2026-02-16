@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getSchoolById } from '../services/schoolService';
 import { Button } from '../../../components/common/Button';
-import { ArrowLeft, School as SchoolIcon, MapPin, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, School as SchoolIcon, MapPin, Phone, Mail, Edit } from 'lucide-react';
 import { InviteAdminModal } from './onboarding/InviteAdminModal';
 import { SchoolSubscriptionInfo } from '../../subscriptions/components/SchoolSubscriptionInfo';
 import { OperationConfig } from './operations/OperationConfig';
@@ -71,7 +71,12 @@ export const SchoolDetail: React.FC = () => {
                         </span>
                     </div>
                 </div>
-                <Button>Edit School</Button>
+                <Link to={`/schools/${id}/edit`}>
+                    <Button variant="outline" className="flex items-center gap-2">
+                        <Edit className="w-4 h-4" />
+                        Edit School
+                    </Button>
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
