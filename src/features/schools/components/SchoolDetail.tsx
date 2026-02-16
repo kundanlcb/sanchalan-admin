@@ -54,7 +54,7 @@ export const SchoolDetail: React.FC = () => {
             label: 'Academic Year',
             isComplete: onboardingStatus?.academicYearCreated,
             actionLabel: 'Setup Academics',
-            actionPath: `/schools/${id}/academics` // Assuming this route exists or is common
+            actionPath: `/schools/${id}/academic` // Corrected path
         },
         {
             id: 'admin',
