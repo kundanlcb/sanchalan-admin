@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -25,8 +25,7 @@ const navItems = [
 ];
 
 export const Sidebar: React.FC = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const { isSidebarOpen, closeSidebar } = useSidebar();
+    const { isSidebarOpen, closeSidebar, isCollapsed, toggleCollapsed } = useSidebar();
     const { } = useAuth(); // Can use to hide items based on Platform Role if needed
 
     return (
@@ -53,7 +52,7 @@ export const Sidebar: React.FC = () => {
                 </div>
 
                 <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    onClick={toggleCollapsed}
                     className="hidden lg:flex absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full items-center justify-center shadow-sm hover:bg-gray-50"
                 >
                     {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -74,12 +73,12 @@ export const Sidebar: React.FC = () => {
                             )}
                         >
                             <item.icon className="w-5 h-5 flex-shrink-0" />
-                            <span className={cn('font-medium', isCollapsed && 'hidden lg:hidden')}>
+                            <span className={cn(
+                                'font-medium transition-opacity duration-300',
+                                isCollapsed ? 'lg:opacity-0 lg:w-0 overflow-hidden' : 'opacity-100'
+                            )}>
                                 {item.name}
                             </span>
-                            {!isCollapsed && <span className="lg:block hidden">{item.name}</span>}
-                            {/* Mobile always shows text */}
-                            <span className="lg:hidden block">{item.name}</span>
                         </NavLink>
                     ))}
                 </nav>

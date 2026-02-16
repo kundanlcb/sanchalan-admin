@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
-import { createSchool } from '../services/schoolService';
+import { getSchoolById, updateSchool } from '../services/schoolService';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const schoolSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
-    schoolCode: z.string().min(3, 'Code must be at least 3 characters').regex(/^[A-Z0-9]+$/, 'Code must be uppercase alphanumeric'),
     board: z.string().min(2, 'Board is required'),
     contactInfo: z.object({
         contactEmail: z.string().email('Invalid email address'),
@@ -22,42 +21,69 @@ const schoolSchema = z.object({
 
 type SchoolFormData = z.infer<typeof schoolSchema>;
 
-export const SchoolCreate: React.FC = () => {
+export const SchoolEdit: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const { register, handleSubmit, formState: { errors } } = useForm<SchoolFormData>({
-        resolver: zodResolver(schoolSchema),
-        defaultValues: {
-            board: 'CBSE'
-        }
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<SchoolFormData>({
+        resolver: zodResolver(schoolSchema)
     });
 
+    useEffect(() => {
+        const fetchSchool = async () => {
+            if (!id) return;
+            try {
+                const school = await getSchoolById(id);
+                reset({
+                    name: school.name,
+                    board: school.board,
+                    contactInfo: {
+                        contactEmail: school.contactInfo?.contactEmail || '',
+                        contactNumber: school.contactInfo?.contactNumber || '',
+                        address: school.contactInfo?.address || ''
+                    }
+                });
+            } catch (err) {
+                setError('Failed to load school details');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSchool();
+    }, [id, reset]);
+
     const onSubmit = async (data: SchoolFormData) => {
+        if (!id) return;
         setIsSubmitting(true);
         setError('');
         try {
-            await createSchool(data as any);
-            navigate('/schools');
+            await updateSchool(id, data as any);
+            navigate(`/schools/${id}`);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to create school');
+            setError(err.response?.data?.message || 'Failed to update school');
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    if (isLoading) {
+        return <div className="text-center py-10">Loading school details...</div>;
+    }
+
     return (
         <div className="max-w-2xl mx-auto">
             <div className="mb-6 flex items-center gap-4">
-                <Link to="/schools">
+                <Link to={`/schools/${id}`}>
                     <Button variant="ghost" className="p-2 h-auto">
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Add New School</h1>
-                    <p className="text-gray-500">Register a new school in the platform</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Edit School</h1>
+                    <p className="text-gray-500">Update school details and contact information</p>
                 </div>
             </div>
 
@@ -77,12 +103,6 @@ export const SchoolCreate: React.FC = () => {
                                 placeholder="e.g. St. Mary's High School"
                                 {...register('name')}
                                 error={errors.name?.message}
-                            />
-                            <Input
-                                label="School Code"
-                                placeholder="e.g. STMARY01"
-                                {...register('schoolCode')}
-                                error={errors.schoolCode?.message}
                             />
                             <Input
                                 label="Board"
@@ -126,11 +146,11 @@ export const SchoolCreate: React.FC = () => {
                     </div>
 
                     <div className="pt-6 flex justify-end gap-3 border-t">
-                        <Link to="/schools">
+                        <Link to={`/schools/${id}`}>
                             <Button type="button" variant="outline">Cancel</Button>
                         </Link>
                         <Button type="submit" isLoading={isSubmitting}>
-                            Create School
+                            Update School
                         </Button>
                     </div>
                 </form>

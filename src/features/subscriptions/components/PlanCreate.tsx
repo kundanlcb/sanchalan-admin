@@ -7,6 +7,7 @@ import { createPlan } from '../services/subscriptionService';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
 import { Card } from '../../../components/common/Card';
+import { X } from 'lucide-react';
 
 const planSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -20,10 +21,10 @@ type PlanFormValues = z.infer<typeof planSchema>;
 
 interface PlanCreateProps {
     onSuccess?: () => void;
-    onCancel?: () => void;
+    onClose?: () => void;
 }
 
-export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onCancel }) => {
+export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) => {
     const queryClient = useQueryClient();
 
     const { register, handleSubmit, formState: { errors } } = useForm<PlanFormValues>({
@@ -47,10 +48,17 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onCancel }) =
     };
 
     return (
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto border-none shadow-none">
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold text-gray-900">Create New Plan</h2>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5 text-gray-400" />
+                    </button>
                 </div>
 
                 <div className="space-y-4">
@@ -96,7 +104,7 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onCancel }) =
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                    <Button type="button" variant="outline" onClick={onCancel}>
+                    <Button type="button" variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button type="submit" isLoading={mutation.isPending}>

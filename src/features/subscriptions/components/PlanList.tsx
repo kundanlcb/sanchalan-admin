@@ -4,8 +4,11 @@ import { getPlans } from '../services/subscriptionService';
 import { Button } from '../../../components/common/Button';
 import { Plus, CreditCard, Users, Clock } from 'lucide-react';
 
+import { PlanCreate } from './PlanCreate';
+
 export const PlanList: React.FC = () => {
-    const { data: plans, isLoading, isError } = useQuery({
+    const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+    const { data: plans, isLoading, isError, refetch } = useQuery({
         queryKey: ['subscription-plans'],
         queryFn: getPlans,
     });
@@ -25,7 +28,7 @@ export const PlanList: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Subscription Plans</h1>
                     <p className="text-gray-500">Define and manage plans available for schools</p>
                 </div>
-                <Button>
+                <Button onClick={() => setIsCreateModalOpen(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Create Plan
                 </Button>
@@ -74,13 +77,27 @@ export const PlanList: React.FC = () => {
                         <CreditCard className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900">No plans defined</h3>
                         <p className="text-gray-500 mt-1">Start by creating your first subscription plan</p>
-                        <Button variant="outline" className="mt-6">
+                        <Button variant="outline" className="mt-6" onClick={() => setIsCreateModalOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Create Plan
                         </Button>
                     </div>
                 )}
             </div>
+
+            {isCreateModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <PlanCreate
+                            onClose={() => setIsCreateModalOpen(false)}
+                            onSuccess={() => {
+                                setIsCreateModalOpen(false);
+                                refetch();
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

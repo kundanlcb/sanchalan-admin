@@ -41,6 +41,17 @@ export const getSchoolById = async (id: string): Promise<School> => {
     }
 }
 
+import apiClient from '../../../services/api/client';
+
+export const updateSchool = async (id: string, data: Partial<CreateSchoolRequest>): Promise<School> => {
+    try {
+        const response = await apiClient.put(`/api/platform/v1/schools/${id}`, data);
+        return response.data as School;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const transitionSchoolStatus = async (id: string, status: School['status']): Promise<School> => {
     try {
         if (!status) throw new Error("Status is required");

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Menu, LogOut, User as UserIcon } from 'lucide-react';
 import { useSidebar } from './SidebarContext';
 import { useAuth } from '../../features/auth/services/authContext';
@@ -9,7 +8,7 @@ export const Header: React.FC = () => {
     const { user, logout } = useAuth();
 
     return (
-        <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 h-16 flex items-center px-4 justify-between">
+        <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 h-16 flex items-center px-4 justify-between transition-all duration-300">
             <div className="flex items-center gap-4">
                 <button onClick={toggleSidebar} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
                     <Menu className="w-6 h-6" />
