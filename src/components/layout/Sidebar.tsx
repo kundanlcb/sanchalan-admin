@@ -69,7 +69,7 @@ export const Sidebar: React.FC = () => {
                                 isActive
                                     ? 'bg-blue-50 text-blue-600'
                                     : 'text-gray-700 hover:bg-gray-100',
-                                isCollapsed && 'justify-center'
+                                isCollapsed && 'lg:justify-center'
                             )}
                         >
                             <item.icon className="w-5 h-5 flex-shrink-0" />
