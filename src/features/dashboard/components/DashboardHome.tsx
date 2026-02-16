@@ -8,7 +8,8 @@ import {
     TrendingUp,
     CheckCircle2,
     PlusCircle,
-    ArrowRight
+    LifeBuoy,
+    Settings
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -40,8 +41,38 @@ export const DashboardHome: React.FC = () => {
         { title: 'Estimated Revenue', value: `₹${metrics?.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
     ];
 
+    const quickLinks = [
+        { title: 'Add School', desc: 'Register a new institution', icon: PlusCircle, path: '/schools/new', color: 'text-blue-600', bg: 'bg-blue-50', hover: 'group-hover:bg-blue-600 group-hover:text-white' },
+        { title: 'Manage Plans', desc: 'Update subscription packages', icon: CreditCard, path: '/subscriptions', color: 'text-purple-600', bg: 'bg-purple-50', hover: 'group-hover:bg-purple-600 group-hover:text-white' },
+        { title: 'Support Center', desc: 'View tickets and issues', icon: LifeBuoy, path: '/support', color: 'text-orange-600', bg: 'bg-orange-50', hover: 'group-hover:bg-orange-600 group-hover:text-white' },
+        { title: 'Platform Settings', desc: 'Configure system options', icon: Settings, path: '/settings', color: 'text-gray-600', bg: 'bg-gray-100', hover: 'group-hover:bg-gray-800 group-hover:text-white' },
+    ];
+
     return (
         <div className="space-y-8">
+            {/* Quick Links Section */}
+            <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {quickLinks.map((link, idx) => (
+                        <Link
+                            key={idx}
+                            to={link.path}
+                            className="group bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex items-start gap-4"
+                        >
+                            <div className={`p-3 rounded-lg ${link.bg} ${link.color} transition-colors duration-300 ${link.hover}`}>
+                                <link.icon className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{link.title}</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">{link.desc}</p>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+            {/* Metrics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cards.map((card, idx) => (
                     <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
@@ -56,9 +87,9 @@ export const DashboardHome: React.FC = () => {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Recent Activity */}
-                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="grid grid-cols-1 gap-8">
+                {/* Recent Activity - Now Full Width */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="font-bold text-gray-900">Recent Activity</h3>
                         <Button variant="ghost" size="sm">View All</Button>
@@ -77,25 +108,6 @@ export const DashboardHome: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                    </div>
-                </div>
-
-                {/* Quick Links / Shortcuts */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                    <h3 className="font-bold text-gray-900 mb-6">Quick Links</h3>
-                    <div className="space-y-3">
-                        <Link to="/schools/new" className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all group">
-                            <span className="text-sm font-medium text-gray-700">Add New School</span>
-                            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transform group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <Link to="/subscriptions" className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all group">
-                            <span className="text-sm font-medium text-gray-700">Manage Plans</span>
-                            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transform group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <Link to="/support" className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all group">
-                            <span className="text-sm font-medium text-gray-700">Support Center</span>
-                            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transform group-hover:translate-x-1 transition-transform" />
-                        </Link>
                     </div>
                 </div>
             </div>
