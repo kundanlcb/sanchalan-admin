@@ -18,13 +18,15 @@ export const SchoolDetail: React.FC = () => {
         enabled: !!id,
     });
 
-    const { data: onboardingStatus, isLoading: isOnboardingLoading, refetch: refetchOnboardingStatus } = useQuery({
+    const { data: onboardingStatus, isLoading: isOnboardingLoading, isError: isOnboardingError, refetch: refetchOnboardingStatus } = useQuery({
         queryKey: ['school-onboarding', id],
         queryFn: () => getOnboardingStatus(id!),
         enabled: !!id,
+        retry: 1, // Only retry once to avoid long hangs
     });
 
-    const isLoading = isSchoolLoading || isOnboardingLoading;
+    // Don't block rendering if onboarding query failed - show page with partial data
+    const isLoading = isSchoolLoading || (isOnboardingLoading && !isOnboardingError);
 
     if (isLoading) {
         return <div className="text-center py-10">Loading school details...</div>;
@@ -224,6 +226,9 @@ export const SchoolDetail: React.FC = () => {
                             >
                                 Invite Admin
                             </Button>
+                            <Link to={`/schools/${id}/academic`} className="block w-full">
+                                <Button variant="outline" className="w-full justify-start">Manage Academics</Button>
+                            </Link>
                             <Link to={`/schools/${id}/finance`} className="block w-full">
                                 <Button variant="outline" className="w-full justify-start">Configure Fees</Button>
                             </Link>

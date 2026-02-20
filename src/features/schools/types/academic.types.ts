@@ -15,7 +15,11 @@ export interface Section {
 
 export interface SchoolClass {
     id: number; // Long
-    name: string; // e.g., "Class 1", "Grade 10"
+    className: string; // e.g., "Class 1", "Grade 10"
+    grade: number;
+    section: string;
+    room?: string;
+    classID?: string;
     schoolId: string;
     sections?: Section[];
 }
@@ -35,7 +39,11 @@ export interface CreateAcademicYearRequest {
 }
 
 export interface CreateClassRequest {
-    name: string;
+    className: string;
+    grade: number;
+    section: string;
+    room?: string;
+    classID?: string;
 }
 
 export interface CreateSectionRequest {

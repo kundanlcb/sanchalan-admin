@@ -28,7 +28,10 @@ apiClient.interceptors.response.use(
         if (error.response?.status === 401) {
             sessionStorage.removeItem('platformAuthToken');
             sessionStorage.removeItem('platformUser');
-            window.location.href = '/login';
+            // Only redirect if not already on login page to avoid clearing error states
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

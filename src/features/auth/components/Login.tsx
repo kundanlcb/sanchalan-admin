@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/authContext';
 import { Input } from '../../../components/common/Input';
@@ -8,8 +8,15 @@ export const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login, isLoading } = useAuth();
+    const { login, isLoading, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    // Navigate to dashboard when authentication succeeds
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,7 +24,7 @@ export const Login: React.FC = () => {
 
         try {
             await login(email, password);
-            navigate('/');
+            // Navigation will happen via useEffect when isAuthenticated becomes true
         } catch (err: any) {
             setError(err.response?.data?.message || 'Login failed');
         }

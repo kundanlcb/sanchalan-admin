@@ -9,14 +9,22 @@ import { getClasses, createClass, getSections, createSection } from '../../servi
 import { Loader2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 
 const classSchema = z.object({
-    name: z.string().min(1, 'Name is required')
+    className: z.string().min(1, 'Class name is required'),
+    grade: z.number().min(1, 'Grade is required'),
+    section: z.string().min(1, 'Section is required'),
+    room: z.string().optional()
 });
 
 const sectionSchema = z.object({
     name: z.string().min(1, 'Name is required')
 });
 
-type ClassFormData = z.infer<typeof classSchema>;
+type ClassFormData = {
+    className: string;
+    grade: number;
+    section: string;
+    room?: string;
+};
 type SectionFormData = z.infer<typeof sectionSchema>;
 
 const ClassRow: React.FC<{ schoolId: string, schoolClass: any }> = ({ schoolId, schoolClass }) => {
@@ -52,11 +60,14 @@ const ClassRow: React.FC<{ schoolId: string, schoolClass: any }> = ({ schoolId, 
                         className="flex items-center text-sm font-medium text-gray-900 hover:text-blue-600 focus:outline-none"
                     >
                         {isExpanded ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
-                        {schoolClass.name}
+                        {schoolClass.className}
                     </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {/* Placeholder for number of sections if available in parent object, else logic needed */}
+                    Grade {schoolClass.grade} - {schoolClass.section}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                    {schoolClass.room || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Button
@@ -70,7 +81,7 @@ const ClassRow: React.FC<{ schoolId: string, schoolClass: any }> = ({ schoolId, 
             </tr>
             {isExpanded && (
                 <tr className="bg-gray-50">
-                    <td colSpan={3} className="px-6 py-4">
+                    <td colSpan={4} className="px-6 py-4">
                         <div className="ml-6 space-y-3">
                             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sections</h4>
 
@@ -119,7 +130,7 @@ export const ClassList: React.FC<{ schoolId: string }> = ({ schoolId }) => {
     });
 
     const createMutation = useMutation({
-        mutationFn: (data: ClassFormData) => createClass(schoolId, data),
+        mutationFn: (data: ClassFormData) => createClass(schoolId, data as any),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['classes', schoolId] });
             setIsCreating(false);
@@ -144,14 +155,35 @@ export const ClassList: React.FC<{ schoolId: string }> = ({ schoolId }) => {
             </div>
 
             {isCreating && (
-                <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4 flex items-start gap-4">
-                    <Input
-                        placeholder="Class Name (e.g. Class 1)"
-                        {...register('name')}
-                        error={errors.name?.message}
-                        containerClassName="flex-1"
-                    />
-                    <div className="flex gap-2 mt-0.5">
+                <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4 flex items-end gap-4">
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <Input
+                            label="Grade"
+                            type="number"
+                            placeholder="e.g. 1"
+                            {...register('grade', { valueAsNumber: true })}
+                            error={errors.grade?.message}
+                        />
+                        <Input
+                            label="Section"
+                            placeholder="e.g. A"
+                            {...register('section')}
+                            error={errors.section?.message}
+                        />
+                        <Input
+                            label="Class Name"
+                            placeholder="e.g. Grade 1-A"
+                            {...register('className')}
+                            error={errors.className?.message}
+                        />
+                        <Input
+                            label="Room"
+                            placeholder="e.g. 101"
+                            {...register('room')}
+                            error={errors.room?.message}
+                        />
+                    </div>
+                    <div className="flex gap-2">
                         <Button type="submit" isLoading={createMutation.isPending}>Save</Button>
                         <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button>
                     </div>
@@ -163,7 +195,8 @@ export const ClassList: React.FC<{ schoolId: string }> = ({ schoolId }) => {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sections</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade/Section</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>

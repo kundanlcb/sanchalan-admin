@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,8 +14,24 @@ const planSchema = z.object({
     price: z.number().min(0, 'Price must be 0 or greater'),
     durationMonths: z.number().min(1, 'Duration must be at least 1 month'),
     maxStudents: z.number().optional().nullable(),
-    features: z.string().optional(),
+    features: z.array(z.string()).optional(),
 });
+
+const AVAILABLE_FEATURES = [
+    'Student Management',
+    'Teacher Management',
+    'Attendance Tracking',
+    'Timetable Generation',
+    'Exam Management',
+    'Finance & Payroll',
+    'Library Management',
+    'Transport Management',
+    'Hostel Management',
+    'Communication (SMS/Email)',
+    'Mobile App Access',
+    'Analytics Dashboard',
+    'Priority Support'
+];
 
 type PlanFormValues = z.infer<typeof planSchema>;
 
@@ -27,11 +43,12 @@ interface PlanCreateProps {
 export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) => {
     const queryClient = useQueryClient();
 
-    const { register, handleSubmit, formState: { errors } } = useForm<PlanFormValues>({
+    const { register, control, handleSubmit, formState: { errors } } = useForm<PlanFormValues>({
         resolver: zodResolver(planSchema),
         defaultValues: {
             durationMonths: 12,
             price: 0,
+            features: [],
         }
     });
 
@@ -44,7 +61,11 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) =>
     });
 
     const onSubmit = (data: PlanFormValues) => {
-        mutation.mutate(data as any);
+        const payload = {
+            ...data,
+            features: data.features && data.features.length > 0 ? data.features.join(',') : undefined,
+        };
+        mutation.mutate(payload as any);
     };
 
     return (
@@ -91,15 +112,34 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) =>
                         error={errors.maxStudents?.message}
                     />
 
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-700">Features</label>
-                        <textarea
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows={4}
-                            placeholder="Feature 1, Feature 2, Feature 3..."
-                            {...register('features')}
+                    <div className="space-y-3">
+                        <label className="text-sm font-medium text-gray-700">Features included in plan</label>
+                        <Controller
+                            name="features"
+                            control={control}
+                            render={({ field }) => (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                    {AVAILABLE_FEATURES.map((feature) => (
+                                        <label key={feature} className="flex items-center space-x-3 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                checked={(field.value || []).includes(feature)}
+                                                onChange={(e) => {
+                                                    const current = field.value || [];
+                                                    if (e.target.checked) {
+                                                        field.onChange([...current, feature]);
+                                                    } else {
+                                                        field.onChange(current.filter((f: string) => f !== feature));
+                                                    }
+                                                }}
+                                            />
+                                            <span className="text-sm text-gray-700 group-hover:text-gray-900">{feature}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
                         />
-                        <p className="text-xs text-gray-500">Separate features with commas</p>
                     </div>
                 </div>
 

@@ -24,3 +24,28 @@ export interface OnboardingStatus {
     subscriptionActive: boolean;
     allComplete: boolean;
 }
+
+export interface SchoolOnboardingRequest {
+    schoolName: string;
+    schoolCode: string;
+    board: string;
+    registrationNumber: string;
+    timezone: string;
+    contactInfo: {
+        email: string;
+        phone: string;
+        address: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+    };
+    adminName: string;
+    adminEmail: string;
+    adminPassword?: string;
+    adminMobile: string;
+    academicYearName: string;
+    startDate: string;
+    endDate: string;
+    planId?: string;
+}

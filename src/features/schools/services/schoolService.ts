@@ -79,3 +79,12 @@ export const getOnboardingStatus = async (id: string): Promise<import('../types/
         throw error;
     }
 };
+
+export const onboardSchool = async (data: import('../types/school.types').SchoolOnboardingRequest): Promise<School> => {
+    try {
+        const response = await apiClient.post('/api/platform/v1/schools/onboard', data);
+        return response.data as School;
+    } catch (error) {
+        throw error;
+    }
+};
