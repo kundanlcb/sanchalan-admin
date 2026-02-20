@@ -112,6 +112,27 @@ export const SchoolSubscriptionInfo: React.FC<SchoolSubscriptionInfoProps> = ({ 
                             </div>
                         )}
                     </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                        <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Included Features</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {Array.isArray(subscription.plan.features) && subscription.plan.features.length > 0 ? (
+                                subscription.plan.features.map((feature: any) => (
+                                    <span key={feature.id || feature} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                        {feature.name || feature}
+                                    </span>
+                                ))
+                            ) : typeof subscription.plan.features === 'string' && subscription.plan.features ? (
+                                subscription.plan.features.split(',').map((f: string, i: number) => (
+                                    <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                        {f.trim()}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="text-sm text-gray-500 italic">No features assigned</span>
+                            )}
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
