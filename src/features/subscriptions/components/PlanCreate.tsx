@@ -2,8 +2,8 @@ import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createPlan } from '../services/subscriptionService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createPlan, getFeatures } from '../services/subscriptionService';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
 import { Card } from '../../../components/common/Card';
@@ -17,21 +17,7 @@ const planSchema = z.object({
     features: z.array(z.string()).optional(),
 });
 
-const AVAILABLE_FEATURES = [
-    'Student Management',
-    'Teacher Management',
-    'Attendance Tracking',
-    'Timetable Generation',
-    'Exam Management',
-    'Finance & Payroll',
-    'Library Management',
-    'Transport Management',
-    'Hostel Management',
-    'Communication (SMS/Email)',
-    'Mobile App Access',
-    'Analytics Dashboard',
-    'Priority Support'
-];
+
 
 type PlanFormValues = z.infer<typeof planSchema>;
 
@@ -42,6 +28,11 @@ interface PlanCreateProps {
 
 export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) => {
     const queryClient = useQueryClient();
+
+    const { data: featuresList, isLoading: isFeaturesLoading } = useQuery({
+        queryKey: ['features'],
+        queryFn: getFeatures,
+    });
 
     const { register, control, handleSubmit, formState: { errors } } = useForm<PlanFormValues>({
         resolver: zodResolver(planSchema),
@@ -61,11 +52,13 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) =>
     });
 
     const onSubmit = (data: PlanFormValues) => {
-        const payload = {
+        const payload: any = {
             ...data,
-            features: data.features && data.features.length > 0 ? data.features.join(',') : undefined,
+            featureIds: data.features,
         };
-        mutation.mutate(payload as any);
+        delete payload.features;
+
+        mutation.mutate(payload);
     };
 
     return (
@@ -119,24 +112,32 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) =>
                             control={control}
                             render={({ field }) => (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                    {AVAILABLE_FEATURES.map((feature) => (
-                                        <label key={feature} className="flex items-center space-x-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                checked={(field.value || []).includes(feature)}
-                                                onChange={(e) => {
-                                                    const current = field.value || [];
-                                                    if (e.target.checked) {
-                                                        field.onChange([...current, feature]);
-                                                    } else {
-                                                        field.onChange(current.filter((f: string) => f !== feature));
-                                                    }
-                                                }}
-                                            />
-                                            <span className="text-sm text-gray-700 group-hover:text-gray-900">{feature}</span>
-                                        </label>
-                                    ))}
+                                    {isFeaturesLoading ? (
+                                        <div className="col-span-full py-4 text-center text-sm text-gray-500">Loading features...</div>
+                                    ) : featuresList?.length === 0 ? (
+                                        <div className="col-span-full py-4 text-center text-sm text-gray-500">No features found.</div>
+                                    ) : (
+                                        featuresList?.map((feature) => (
+                                            <label key={feature.id} className="flex items-center space-x-3 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                    checked={(field.value || []).includes(feature.id)}
+                                                    onChange={(e) => {
+                                                        const current = field.value || [];
+                                                        if (e.target.checked) {
+                                                            field.onChange([...current, feature.id]);
+                                                        } else {
+                                                            field.onChange(current.filter((id: string) => id !== feature.id));
+                                                        }
+                                                    }}
+                                                />
+                                                <span className="text-sm text-gray-700 group-hover:text-gray-900" title={feature.description}>
+                                                    {feature.name}
+                                                </span>
+                                            </label>
+                                        ))
+                                    )}
                                 </div>
                             )}
                         />

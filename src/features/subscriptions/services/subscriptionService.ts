@@ -1,5 +1,6 @@
 import { subscriptionApi } from '../../../api/services';
-import type { SubscriptionPlan, SchoolSubscription, CreatePlanRequest } from '../types/subscription.types';
+import apiClient from '../../../services/api/client';
+import type { SubscriptionPlan, SchoolSubscription, CreatePlanRequest, Feature } from '../types/subscription.types';
 
 export const getPlans = async (): Promise<SubscriptionPlan[]> => {
     try {
@@ -10,9 +11,19 @@ export const getPlans = async (): Promise<SubscriptionPlan[]> => {
     }
 };
 
+export const getFeatures = async (): Promise<Feature[]> => {
+    try {
+        // Backend API is mounted at /api/platform/v1/features
+        const response = await apiClient.get('/api/platform/v1/features');
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const createPlan = async (data: CreatePlanRequest): Promise<SubscriptionPlan> => {
     try {
-        const response = await subscriptionApi.createPlan({ subscriptionPlan: data });
+        const response = await apiClient.post('/api/platform/v1/subscriptions/plans', data);
         return response.data;
     } catch (error) {
         throw error;
