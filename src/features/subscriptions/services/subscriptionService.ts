@@ -13,9 +13,25 @@ export const getPlans = async (): Promise<SubscriptionPlan[]> => {
 
 export const getFeatures = async (): Promise<Feature[]> => {
     try {
-        // Backend API is mounted at /api/platform/v1/features
         const response = await apiClient.get('/api/platform/v1/features');
         return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const createFeature = async (data: Partial<Feature>): Promise<Feature> => {
+    try {
+        const response = await apiClient.post('/api/platform/v1/features', data);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteFeature = async (id: string): Promise<void> => {
+    try {
+        await apiClient.delete(`/api/platform/v1/features/${id}`);
     } catch (error) {
         throw error;
     }

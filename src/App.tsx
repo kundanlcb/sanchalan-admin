@@ -16,6 +16,7 @@ import { BulkImport } from './features/schools/components/imports/BulkImport';
 
 import { FeeConfig } from './features/finance/components/FeeConfig';
 import { PlanList } from './features/subscriptions/components/PlanList';
+import { FeatureList } from './features/subscriptions/components/FeatureList';
 import { Finance } from './pages/Finance';
 
 import { SupportDashboard } from './features/support/components/SupportDashboard';
@@ -40,6 +41,7 @@ function App() {
                 <Route path="/schools/:id/finance" element={<Layout><FeeConfig /></Layout>} />
                 <Route path="/finance" element={<Layout><Finance /></Layout>} />
                 <Route path="/subscriptions" element={<Layout><PlanList /></Layout>} />
+                <Route path="/features" element={<Layout><FeatureList /></Layout>} />
                 <Route path="/support" element={<Layout><SupportDashboard /></Layout>} />
                 <Route path="/settings" element={<Layout><Settings /></Layout>} />
               </Route>

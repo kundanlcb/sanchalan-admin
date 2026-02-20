@@ -9,6 +9,7 @@ import {
     ChevronLeft,
     ChevronRight,
     CreditCard,
+    ListTodo,
     X
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
@@ -20,6 +21,7 @@ const navItems = [
     { name: 'Schools', path: '/schools', icon: School },
     { name: 'Finance', path: '/finance', icon: Wallet },
     { name: 'Subscriptions', path: '/subscriptions', icon: CreditCard },
+    { name: 'Features', path: '/features', icon: ListTodo },
     { name: 'Support', path: '/support', icon: LifeBuoy },
     { name: 'Settings', path: '/settings', icon: Settings },
 ];
