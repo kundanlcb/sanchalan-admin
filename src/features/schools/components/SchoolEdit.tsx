@@ -19,7 +19,11 @@ const schoolSchema = z.object({
     contactInfo: z.object({
         contactEmail: z.string().optional().refine((value) => !value || /\S+@\S+\.\S+/.test(value), 'Invalid email address'),
         contactNumber: z.string().optional(),
-        address: z.string().optional()
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        postalCode: z.string().optional(),
+        country: z.string().optional(),
     })
 });
 
@@ -61,7 +65,11 @@ export const SchoolEdit: React.FC = () => {
                     contactInfo: {
                         contactEmail: school.contactInfo?.contactEmail || '',
                         contactNumber: school.contactInfo?.contactNumber || '',
-                        address: school.contactInfo?.address || ''
+                        address: school.contactInfo?.address || '',
+                        city: school.contactInfo?.city || '',
+                        state: school.contactInfo?.state || '',
+                        postalCode: school.contactInfo?.postalCode || '',
+                        country: school.contactInfo?.country || '',
                     }
                 });
             } catch (err) {
@@ -82,6 +90,10 @@ export const SchoolEdit: React.FC = () => {
                 contactEmail: toOptional(data.contactInfo.contactEmail),
                 contactNumber: toOptional(data.contactInfo.contactNumber),
                 address: toOptional(data.contactInfo.address),
+                city: toOptional(data.contactInfo.city),
+                state: toOptional(data.contactInfo.state),
+                postalCode: toOptional(data.contactInfo.postalCode),
+                country: toOptional(data.contactInfo.country),
             };
             const hasContactInfo = Object.values(contactInfo).some(Boolean);
 
@@ -210,6 +222,30 @@ export const SchoolEdit: React.FC = () => {
                                     <p className="text-sm text-red-500 mt-1">{errors.contactInfo.address.message}</p>
                                 )}
                             </div>
+                            <Input
+                                label="City"
+                                placeholder="e.g. Pune"
+                                {...register('contactInfo.city')}
+                                error={errors.contactInfo?.city?.message}
+                            />
+                            <Input
+                                label="State"
+                                placeholder="e.g. Maharashtra"
+                                {...register('contactInfo.state')}
+                                error={errors.contactInfo?.state?.message}
+                            />
+                            <Input
+                                label="Postal Code"
+                                placeholder="e.g. 411001"
+                                {...register('contactInfo.postalCode')}
+                                error={errors.contactInfo?.postalCode?.message}
+                            />
+                            <Input
+                                label="Country"
+                                placeholder="e.g. India"
+                                {...register('contactInfo.country')}
+                                error={errors.contactInfo?.country?.message}
+                            />
                         </div>
                     </div>
 

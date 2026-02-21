@@ -110,36 +110,63 @@ export const PlanCreate: React.FC<PlanCreateProps> = ({ onSuccess, onClose }) =>
                         <Controller
                             name="features"
                             control={control}
-                            render={({ field }) => (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                    {isFeaturesLoading ? (
-                                        <div className="col-span-full py-4 text-center text-sm text-gray-500">Loading features...</div>
-                                    ) : featuresList?.length === 0 ? (
-                                        <div className="col-span-full py-4 text-center text-sm text-gray-500">No features found.</div>
-                                    ) : (
-                                        featuresList?.map((feature) => (
-                                            <label key={feature.id} className="flex items-center space-x-3 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                                    checked={(field.value || []).includes(feature.id)}
-                                                    onChange={(e) => {
-                                                        const current = field.value || [];
-                                                        if (e.target.checked) {
-                                                            field.onChange([...current, feature.id]);
-                                                        } else {
-                                                            field.onChange(current.filter((id: string) => id !== feature.id));
-                                                        }
-                                                    }}
-                                                />
-                                                <span className="text-sm text-gray-700 group-hover:text-gray-900" title={feature.description}>
-                                                    {feature.name}
+                            render={({ field }) => {
+                                const allIds = featuresList?.map(f => f.id) || [];
+                                const selected = field.value || [];
+                                const allSelected = allIds.length > 0 && allIds.every(id => selected.includes(id));
+                                return (
+                                    <div className="border border-gray-200 rounded-lg bg-gray-50">
+                                        {/* Select All header */}
+                                        {!isFeaturesLoading && featuresList && featuresList.length > 0 && (
+                                            <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 bg-white rounded-t-lg">
+                                                <label className="flex items-center space-x-3 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                        checked={allSelected}
+                                                        onChange={() => {
+                                                            field.onChange(allSelected ? [] : [...allIds]);
+                                                        }}
+                                                    />
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        {allSelected ? 'Deselect All' : 'Select All'}
+                                                    </span>
+                                                </label>
+                                                <span className="text-xs text-gray-400">
+                                                    {selected.length}/{allIds.length} selected
                                                 </span>
-                                            </label>
-                                        ))
-                                    )}
-                                </div>
-                            )}
+                                            </div>
+                                        )}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-4">
+                                            {isFeaturesLoading ? (
+                                                <div className="col-span-full py-4 text-center text-sm text-gray-500">Loading features...</div>
+                                            ) : featuresList?.length === 0 ? (
+                                                <div className="col-span-full py-4 text-center text-sm text-gray-500">No features found.</div>
+                                            ) : (
+                                                featuresList?.map((feature) => (
+                                                    <label key={feature.id} className="flex items-center space-x-3 cursor-pointer group">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                            checked={selected.includes(feature.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    field.onChange([...selected, feature.id]);
+                                                                } else {
+                                                                    field.onChange(selected.filter((id: string) => id !== feature.id));
+                                                                }
+                                                            }}
+                                                        />
+                                                        <span className="text-sm text-gray-700 group-hover:text-gray-900" title={feature.description}>
+                                                            {feature.name}
+                                                        </span>
+                                                    </label>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
                 </div>

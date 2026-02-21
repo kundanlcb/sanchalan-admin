@@ -54,18 +54,18 @@ export const SchoolDetail: React.FC = () => {
             actionPath: `/schools/${id}/edit`
         },
         {
-            id: 'academic',
-            label: 'Academic Year',
-            isComplete: onboardingStatus?.academicYearCreated,
-            actionLabel: 'Setup Academics',
-            actionPath: `/schools/${id}/academic`
-        },
-        {
             id: 'admin',
             label: 'Admin User',
             isComplete: onboardingStatus?.adminUserInvited,
             actionLabel: 'Invite Admin',
             onClick: () => setIsInviteModalOpen(true)
+        },
+        {
+            id: 'academic',
+            label: 'Academic Year',
+            isComplete: onboardingStatus?.academicYearCreated,
+            actionLabel: 'Setup Academics',
+            actionPath: `/schools/${id}/academic`
         },
         {
             id: 'subscription',
@@ -229,17 +229,33 @@ export const SchoolDetail: React.FC = () => {
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
                         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Contact Information</h3>
                         <ul className="space-y-4">
-                            <li className="flex items-start gap-3">
-                                <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
-                                <span className="text-sm text-gray-600 break-all">{school.contactInfo?.contactEmail}</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
-                                <span className="text-sm text-gray-600">{school.contactInfo?.contactNumber}</span>
-                            </li>
+                            {school.contactInfo?.contactEmail && (
+                                <li className="flex items-start gap-3">
+                                    <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                                    <span className="text-sm text-gray-600 break-all">{school.contactInfo.contactEmail}</span>
+                                </li>
+                            )}
+                            {school.contactInfo?.contactNumber && (
+                                <li className="flex items-start gap-3">
+                                    <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+                                    <span className="text-sm text-gray-600">{school.contactInfo.contactNumber}</span>
+                                </li>
+                            )}
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                                <span className="text-sm text-gray-600">{school.contactInfo?.address}</span>
+                                <div className="text-sm text-gray-600">
+                                    {school.contactInfo?.address && <div>{school.contactInfo.address}</div>}
+                                    {(school.contactInfo?.city || school.contactInfo?.state || school.contactInfo?.postalCode) && (
+                                        <div>
+                                            {[school.contactInfo?.city, school.contactInfo?.state, school.contactInfo?.postalCode]
+                                                .filter(Boolean).join(', ')}
+                                        </div>
+                                    )}
+                                    {school.contactInfo?.country && <div>{school.contactInfo.country}</div>}
+                                    {!school.contactInfo?.address && !school.contactInfo?.city && (
+                                        <span className="text-gray-400 italic">No address provided</span>
+                                    )}
+                                </div>
                             </li>
                         </ul>
                     </div>
