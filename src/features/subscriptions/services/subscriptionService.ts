@@ -1,6 +1,6 @@
 import { subscriptionApi } from '../../../api/services';
 import apiClient from '../../../services/api/client';
-import type { SubscriptionPlan, SchoolSubscription, CreatePlanRequest, Feature } from '../types/subscription.types';
+import type { SubscriptionPlan, SchoolSubscription, CreatePlanRequest, Feature, SchoolFeatureState } from '../types/subscription.types';
 
 export const getPlans = async (): Promise<SubscriptionPlan[]> => {
     try {
@@ -58,6 +58,28 @@ export const assignPlanToSchool = async (schoolId: string, planId: string): Prom
 export const getActiveSubscription = async (schoolId: string): Promise<SchoolSubscription> => {
     try {
         const response = await subscriptionApi.getActiveSubscription({ schoolId });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getSchoolFeatures = async (schoolId: string): Promise<SchoolFeatureState[]> => {
+    try {
+        const response = await apiClient.get(`/api/platform/v1/schools/${schoolId}/features`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const toggleSchoolFeature = async (
+    schoolId: string,
+    featureId: string,
+    enabled: boolean
+): Promise<SchoolFeatureState> => {
+    try {
+        const response = await apiClient.put(`/api/platform/v1/schools/${schoolId}/features/${featureId}`, { enabled });
         return response.data;
     } catch (error) {
         throw error;

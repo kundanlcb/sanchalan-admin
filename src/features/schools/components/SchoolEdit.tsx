@@ -5,17 +5,21 @@ import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
-import { getSchoolById, updateSchool } from '../services/schoolService';
+import { completeSchoolOnboarding, getSchoolById, updateSchool } from '../services/schoolService';
+import type { DraftSchoolRequest } from '../types/school.types';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const schoolSchema = z.object({
+    schoolCode: z.string().min(3, 'Code must be at least 3 characters').regex(/^[A-Z0-9]+$/, 'Code must be uppercase alphanumeric'),
     name: z.string().min(3, 'Name must be at least 3 characters'),
-    board: z.string().min(2, 'Board is required'),
+    board: z.string().optional(),
+    registrationNumber: z.string().optional(),
+    timezone: z.string().optional(),
     contactInfo: z.object({
-        contactEmail: z.string().email('Invalid email address'),
-        contactNumber: z.string().min(10, 'Phone must be at least 10 digits'),
-        address: z.string().min(5, 'Address is required')
+        contactEmail: z.string().optional().refine((value) => !value || /\S+@\S+\.\S+/.test(value), 'Invalid email address'),
+        contactNumber: z.string().optional(),
+        address: z.string().optional()
     })
 });
 
@@ -25,21 +29,35 @@ export const SchoolEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [schoolStatus, setSchoolStatus] = useState<string | undefined>();
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema)
     });
+
+    const toOptional = (value?: string): string | undefined => {
+        if (value == null) {
+            return undefined;
+        }
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+    };
 
     useEffect(() => {
         const fetchSchool = async () => {
             if (!id) return;
             try {
                 const school = await getSchoolById(id);
+                setSchoolStatus(school.status);
                 reset({
+                    schoolCode: school.schoolCode || '',
                     name: school.name,
-                    board: school.board,
+                    board: school.board || '',
+                    registrationNumber: school.registrationNumber || '',
+                    timezone: school.timezone || 'Asia/Kolkata',
                     contactInfo: {
                         contactEmail: school.contactInfo?.contactEmail || '',
                         contactNumber: school.contactInfo?.contactNumber || '',
@@ -60,12 +78,42 @@ export const SchoolEdit: React.FC = () => {
         setIsSubmitting(true);
         setError('');
         try {
-            await updateSchool(id, data as any);
+            const contactInfo = {
+                contactEmail: toOptional(data.contactInfo.contactEmail),
+                contactNumber: toOptional(data.contactInfo.contactNumber),
+                address: toOptional(data.contactInfo.address),
+            };
+            const hasContactInfo = Object.values(contactInfo).some(Boolean);
+
+            const payload: Partial<DraftSchoolRequest> = {
+                schoolCode: data.schoolCode.trim().toUpperCase(),
+                name: data.name.trim(),
+                board: toOptional(data.board),
+                registrationNumber: toOptional(data.registrationNumber),
+                timezone: toOptional(data.timezone),
+                contactInfo: hasContactInfo ? contactInfo : undefined,
+            };
+
+            await updateSchool(id, payload);
             navigate(`/schools/${id}`);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to update school');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const onCompleteOnboarding = async () => {
+        if (!id) return;
+        setIsCompleting(true);
+        setError('');
+        try {
+            await completeSchoolOnboarding(id);
+            navigate(`/schools/${id}`);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to complete onboarding');
+        } finally {
+            setIsCompleting(false);
         }
     };
 
@@ -82,8 +130,10 @@ export const SchoolEdit: React.FC = () => {
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Edit School</h1>
-                    <p className="text-gray-500">Update school details and contact information</p>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {schoolStatus === 'DRAFT' ? 'Edit Draft School' : 'Edit School'}
+                    </h1>
+                    <p className="text-gray-500">Update school profile and save progress</p>
                 </div>
             </div>
 
@@ -99,6 +149,12 @@ export const SchoolEdit: React.FC = () => {
                         <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Basic Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Input
+                                label="School Code"
+                                placeholder="e.g. SXHS001"
+                                {...register('schoolCode')}
+                                error={errors.schoolCode?.message}
+                            />
+                            <Input
                                 label="School Name"
                                 placeholder="e.g. St. Mary's High School"
                                 {...register('name')}
@@ -109,6 +165,18 @@ export const SchoolEdit: React.FC = () => {
                                 placeholder="e.g. CBSE, ICSE"
                                 {...register('board')}
                                 error={errors.board?.message}
+                            />
+                            <Input
+                                label="Registration Number"
+                                placeholder="Optional"
+                                {...register('registrationNumber')}
+                                error={errors.registrationNumber?.message}
+                            />
+                            <Input
+                                label="Timezone"
+                                placeholder="e.g. Asia/Kolkata"
+                                {...register('timezone')}
+                                error={errors.timezone?.message}
                             />
                         </div>
                     </div>
@@ -145,12 +213,28 @@ export const SchoolEdit: React.FC = () => {
                         </div>
                     </div>
 
+                    {schoolStatus === 'DRAFT' && (
+                        <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                            This school is in draft. You can save partial updates and complete onboarding once admin, academic year, and subscription are configured.
+                        </div>
+                    )}
+
                     <div className="pt-6 flex justify-end gap-3 border-t">
                         <Link to={`/schools/${id}`}>
                             <Button type="button" variant="outline">Cancel</Button>
                         </Link>
+                        {schoolStatus === 'DRAFT' && (
+                            <Button
+                                type="button"
+                                isLoading={isCompleting}
+                                disabled={isSubmitting}
+                                onClick={onCompleteOnboarding}
+                            >
+                                Complete Onboarding
+                            </Button>
+                        )}
                         <Button type="submit" isLoading={isSubmitting}>
-                            Update School
+                            {schoolStatus === 'DRAFT' ? 'Save Draft Changes' : 'Update School'}
                         </Button>
                     </div>
                 </form>

@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
-import { onboardSchool } from '../services/schoolService';
+import { createDraftSchool, onboardSchool } from '../services/schoolService';
 import { getPlans } from '../../subscriptions/services/subscriptionService';
 import type { SubscriptionPlan } from '../../subscriptions/types/subscription.types';
+import type { DraftSchoolRequest } from '../types/school.types';
 import { ArrowLeft, Clock, Shield, Calendar, CreditCard, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Select } from '../../../components/common/Select';
@@ -19,8 +20,8 @@ const schoolSchema = z.object({
     registrationNumber: z.string().default(''),
     timezone: z.string().default('Asia/Kolkata'),
     contactInfo: z.object({
-        email: z.string().email('Invalid email address'),
-        phone: z.string().min(10, 'Phone must be at least 10 digits'),
+        contactEmail: z.string().email('Invalid email address'),
+        contactNumber: z.string().min(10, 'Phone must be at least 10 digits'),
         address: z.string().min(5, 'Address is required'),
         city: z.string().min(2, 'City is required'),
         state: z.string().min(2, 'State is required'),
@@ -41,6 +42,7 @@ type SchoolFormData = z.infer<typeof schoolSchema>;
 export const SchoolCreate: React.FC = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [error, setError] = useState('');
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [isLoadingPlans, setIsLoadingPlans] = useState(true);
@@ -59,7 +61,7 @@ export const SchoolCreate: React.FC = () => {
         fetchPlans();
     }, []);
 
-    const { register, handleSubmit, formState: { errors } } = useForm<SchoolFormData>({
+    const { register, handleSubmit, trigger, getValues, formState: { errors } } = useForm<SchoolFormData>({
         resolver: zodResolver(schoolSchema) as any,
         defaultValues: {
             board: 'CBSE',
@@ -75,16 +77,70 @@ export const SchoolCreate: React.FC = () => {
         } as any
     });
 
+    const toOptional = (value?: string): string | undefined => {
+        if (value == null) {
+            return undefined;
+        }
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+    };
+
+    const buildDraftPayload = (data: SchoolFormData): DraftSchoolRequest => {
+        const contactInfo = {
+            contactEmail: toOptional(data.contactInfo?.contactEmail),
+            contactNumber: toOptional(data.contactInfo?.contactNumber),
+            address: toOptional(data.contactInfo?.address),
+            city: toOptional(data.contactInfo?.city),
+            state: toOptional(data.contactInfo?.state),
+            postalCode: toOptional(data.contactInfo?.postalCode),
+            country: toOptional(data.contactInfo?.country),
+        };
+
+        const hasContactInfo = Object.values(contactInfo).some(Boolean);
+
+        return {
+            schoolCode: data.schoolCode.trim().toUpperCase(),
+            name: data.schoolName.trim(),
+            board: toOptional(data.board),
+            registrationNumber: toOptional(data.registrationNumber),
+            timezone: toOptional(data.timezone),
+            contactInfo: hasContactInfo ? contactInfo : undefined,
+        };
+    };
+
     const onSubmit = async (data: SchoolFormData) => {
         setIsSubmitting(true);
         setError('');
         try {
-            await onboardSchool(data as any);
+            const payload = {
+                ...data,
+                schoolCode: data.schoolCode.trim().toUpperCase(),
+            };
+            console.log('Onboarding Payload:', JSON.stringify(payload, null, 2));
+            await onboardSchool(payload as any);
             navigate('/schools');
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || 'Failed to onboard school');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const onSaveDraft = async () => {
+        const isValid = await trigger(['schoolName', 'schoolCode']);
+        if (!isValid) {
+            return;
+        }
+
+        setIsSavingDraft(true);
+        setError('');
+        try {
+            const savedSchool = await createDraftSchool(buildDraftPayload(getValues()));
+            navigate(`/schools/${savedSchool.id}`);
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message || 'Failed to save draft');
+        } finally {
+            setIsSavingDraft(false);
         }
     };
 
@@ -97,8 +153,8 @@ export const SchoolCreate: React.FC = () => {
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Unified School Onboarding</h1>
-                    <p className="text-gray-500">Register a new school, setup admin and academic year in one go</p>
+                    <h1 className="text-2xl font-bold text-gray-900">School Onboarding</h1>
+                    <p className="text-gray-500">Save as draft anytime, or complete all steps and activate in one go</p>
                 </div>
             </div>
 
@@ -171,14 +227,14 @@ export const SchoolCreate: React.FC = () => {
                                     label="Official Email"
                                     type="email"
                                     placeholder="info@school.com"
-                                    {...register('contactInfo.email')}
-                                    error={errors.contactInfo?.email?.message}
+                                    {...register('contactInfo.contactEmail')}
+                                    error={errors.contactInfo?.contactEmail?.message}
                                 />
                                 <Input
                                     label="Contact Number"
                                     placeholder="+91 9876543210"
-                                    {...register('contactInfo.phone')}
-                                    error={errors.contactInfo?.phone?.message}
+                                    {...register('contactInfo.contactNumber')}
+                                    error={errors.contactInfo?.contactNumber?.message}
                                 />
                                 <div className="md:col-span-2 space-y-1">
                                     <label className="block text-sm font-medium text-gray-700">School Address</label>
@@ -311,8 +367,19 @@ export const SchoolCreate: React.FC = () => {
                             </Button>
                         </Link>
                         <Button
+                            type="button"
+                            variant="outline"
+                            isLoading={isSavingDraft}
+                            disabled={isSubmitting}
+                            onClick={onSaveDraft}
+                            className="px-8 bg-white"
+                        >
+                            Save as Draft
+                        </Button>
+                        <Button
                             type="submit"
                             isLoading={isSubmitting}
+                            disabled={isSavingDraft}
                             className="bg-blue-600 hover:bg-blue-700 px-8 text-white font-medium shadow-lg hover:shadow-xl transition-all"
                         >
                             Onboard & Activate School

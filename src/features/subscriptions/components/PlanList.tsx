@@ -59,12 +59,21 @@ export const PlanList: React.FC = () => {
                                 <div className="pt-2">
                                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Features</p>
                                     <ul className="space-y-2">
-                                        {plan.features.split(',').map((feature, idx) => (
-                                            <li key={idx} className="flex items-start text-sm text-gray-600">
-                                                <div className="mr-2 mt-1 w-1 h-1 rounded-full bg-blue-500" />
-                                                {feature.trim()}
-                                            </li>
-                                        ))}
+                                        {Array.isArray(plan.features) ? (
+                                            plan.features.map((feature: any, idx: number) => (
+                                                <li key={feature.id || idx} className="flex items-start text-sm text-gray-600">
+                                                    <div className="mr-2 mt-1 w-1 h-1 rounded-full bg-blue-500" />
+                                                    {feature.name || feature}
+                                                </li>
+                                            ))
+                                        ) : typeof plan.features === 'string' ? (
+                                            plan.features.split(',').map((feature: string, idx: number) => (
+                                                <li key={idx} className="flex items-start text-sm text-gray-600">
+                                                    <div className="mr-2 mt-1 w-1 h-1 rounded-full bg-blue-500" />
+                                                    {feature.trim()}
+                                                </li>
+                                            ))
+                                        ) : null}
                                     </ul>
                                 </div>
                             )}

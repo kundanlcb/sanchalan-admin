@@ -9,6 +9,16 @@ export interface Feature {
     description?: string;
 }
 
+export interface SchoolFeatureState {
+    featureId: string;
+    code: string;
+    name: string;
+    description?: string;
+    inActivePlan: boolean;
+    assignedToSchool: boolean;
+    enabled: boolean;
+}
+
 export interface CreatePlanRequest extends Omit<SubscriptionPlan, 'id' | 'createdAt' | 'updatedAt' | 'features'> {
     featureIds?: string[];
 }

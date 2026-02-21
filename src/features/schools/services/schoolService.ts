@@ -1,5 +1,6 @@
 import { schoolApi } from '../../../api/services';
-import { type School, type CreateSchoolRequest, type SchoolListResponse } from '../types/school.types';
+import apiClient from '../../../services/api/client';
+import { type School, type CreateSchoolRequest, type DraftSchoolRequest, type SchoolListResponse } from '../types/school.types';
 
 export const getSchools = async (page = 0, size = 10): Promise<SchoolListResponse> => {
     try {
@@ -32,6 +33,15 @@ export const createSchool = async (data: CreateSchoolRequest): Promise<School> =
     }
 };
 
+export const createDraftSchool = async (data: DraftSchoolRequest): Promise<School> => {
+    try {
+        const response = await apiClient.post('/api/platform/v1/schools', data);
+        return response.data as School;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const getSchoolById = async (id: string): Promise<School> => {
     try {
         const response = await schoolApi.getSchoolById({ schoolId: id });
@@ -39,13 +49,20 @@ export const getSchoolById = async (id: string): Promise<School> => {
     } catch (error) {
         throw error;
     }
-}
+};
 
-import apiClient from '../../../services/api/client';
-
-export const updateSchool = async (id: string, data: Partial<CreateSchoolRequest>): Promise<School> => {
+export const updateSchool = async (id: string, data: Partial<CreateSchoolRequest | DraftSchoolRequest>): Promise<School> => {
     try {
         const response = await apiClient.put(`/api/platform/v1/schools/${id}`, data);
+        return response.data as School;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const completeSchoolOnboarding = async (id: string): Promise<School> => {
+    try {
+        const response = await apiClient.post(`/api/platform/v1/schools/${id}/complete-onboarding`);
         return response.data as School;
     } catch (error) {
         throw error;

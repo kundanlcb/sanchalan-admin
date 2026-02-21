@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getSchoolById, getOnboardingStatus } from '../services/schoolService';
+import { completeSchoolOnboarding, getOnboardingStatus, getSchoolById } from '../services/schoolService';
 import { Button } from '../../../components/common/Button';
 import { ArrowLeft, School as SchoolIcon, MapPin, Phone, Mail, Edit, CheckCircle2, Circle } from 'lucide-react';
 import { InviteAdminModal } from './onboarding/InviteAdminModal';
@@ -11,6 +11,8 @@ import { OperationConfig } from './operations/OperationConfig';
 export const SchoolDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
+    const [completionError, setCompletionError] = useState('');
 
     const { data: school, isLoading: isSchoolLoading, isError, refetch: refetchSchool } = useQuery({
         queryKey: ['school', id],
@@ -22,7 +24,7 @@ export const SchoolDetail: React.FC = () => {
         queryKey: ['school-onboarding', id],
         queryFn: () => getOnboardingStatus(id!),
         enabled: !!id,
-        retry: 1, // Only retry once to avoid long hangs
+        retry: 1,
     });
 
     // Don't block rendering if onboarding query failed - show page with partial data
@@ -56,7 +58,7 @@ export const SchoolDetail: React.FC = () => {
             label: 'Academic Year',
             isComplete: onboardingStatus?.academicYearCreated,
             actionLabel: 'Setup Academics',
-            actionPath: `/schools/${id}/academic` // Corrected path
+            actionPath: `/schools/${id}/academic`
         },
         {
             id: 'admin',
@@ -73,6 +75,21 @@ export const SchoolDetail: React.FC = () => {
             actionPath: `/schools/${id}/finance`
         }
     ];
+
+    const handleCompleteOnboarding = async () => {
+        if (!id) return;
+        setIsCompleting(true);
+        setCompletionError('');
+        try {
+            await completeSchoolOnboarding(id);
+            await refetchSchool();
+            await refetchOnboardingStatus();
+        } catch (err: any) {
+            setCompletionError(err.response?.data?.message || 'Failed to complete onboarding');
+        } finally {
+            setIsCompleting(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -112,13 +129,26 @@ export const SchoolDetail: React.FC = () => {
                         </span>
                     </div>
                 </div>
-                <Link to={`/schools/${id}/edit`}>
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <Edit className="w-4 h-4" />
-                        Edit School
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                    {school.status === 'DRAFT' && (
+                        <Button onClick={handleCompleteOnboarding} isLoading={isCompleting}>
+                            Complete Onboarding
+                        </Button>
+                    )}
+                    <Link to={`/schools/${id}/edit`}>
+                        <Button variant="outline" className="flex items-center gap-2">
+                            <Edit className="w-4 h-4" />
+                            Edit School
+                        </Button>
+                    </Link>
+                </div>
             </div>
+
+            {completionError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {completionError}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Content - Overview & Config */}

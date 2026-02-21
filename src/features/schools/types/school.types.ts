@@ -32,8 +32,8 @@ export interface SchoolOnboardingRequest {
     registrationNumber: string;
     timezone: string;
     contactInfo: {
-        email: string;
-        phone: string;
+        contactEmail: string;
+        contactNumber: string;
         address: string;
         city: string;
         state: string;
@@ -47,5 +47,23 @@ export interface SchoolOnboardingRequest {
     academicYearName: string;
     startDate: string;
     endDate: string;
-    planId?: string;
+    planId: string;
+}
+
+export interface DraftSchoolRequest {
+    schoolCode: string;
+    name: string;
+    board?: string;
+    registrationNumber?: string;
+    timezone?: string;
+    contactInfo?: {
+        contactEmail?: string;
+        contactNumber?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+        contactPerson?: string;
+    };
 }
